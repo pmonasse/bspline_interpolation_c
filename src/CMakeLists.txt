@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+project(Splinter)
 
 # FindGSL.cmake not present before CMake 3.2, use provided one if necessary
 if(CMAKE_VERSION VERSION_LESS "3.2")
@@ -27,11 +28,16 @@ endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 
+option(EXTRAPOLATE "Extrapolate for pixels outside image" OFF)
+
 add_library(Splinter bspline.c bspline.h splinter.c splinter.h)
 if(GSL_FOUND)
   target_link_libraries(Splinter ${GSL_LIBRARIES} m)
 else()
   target_link_libraries(Splinter m)
+endif()
+if(EXTRAPOLATE)
+  set_target_properties(Splinter PROPERTIES COMPILE_DEFINITIONS EXTRAPOLATE)
 endif()
 
 add_executable(bspline bspline_main.c splinter_transform.c homography_tools.c)

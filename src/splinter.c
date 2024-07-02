@@ -410,8 +410,8 @@ void splinter_destroy_plan(splinter_plan_t plan) {
 /// an array large enough to accomodate the number of channels of the image.
 /// \param out the array (or pointer if single channel) where output values
 /// are stored.
-/// \remark Pixels outside the image receive the value 0. However, uncommenting
-/// a single line in the function allows extrapolation with the extension
+/// \remark Pixels outside the image receive the value 0, unless the macro
+/// EXTRAPOLATE is set: then, extrapolation is done with the extension
 /// specified at creation of the plan.
 /// \param x,y coordinates of pixel.
 /// \param plan the plan create with \ref splinter_plan.
@@ -431,10 +431,10 @@ void splinter(double* out, double x, double y, splinter_plan_t plan) {
 
     for(int c=0; c<plan.c; c++)
         out[c]=0;
-    int inside = shift<=x && x<=plan.w-1-shift && shift<=y && y<=plan.h-1-shift;
-    //inside=1; // Uncomment to extrapolate
-    if(! inside)
+#ifndef EXTRAPOLATE
+    if(! (shift<=x && x<=plan.w-1-shift && shift<=y && y<=plan.h-1-shift))
         return;
+#endif
     // Evaluate the kernel
     int x0 = ceil(x-radius), y0 = ceil(y-radius);
     for(int k = 0; k < kWidth; k++)
