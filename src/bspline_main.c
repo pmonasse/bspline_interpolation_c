@@ -104,7 +104,7 @@ static BoundaryExt read_ext(const char* boundary, int* larger) {
         }
         return BOUNDARY_CONSTANT;
     }
-    if(0 == strncmp(boundary, "per", strlen(boundary)))
+    if(0 == strncmp(boundary, "periodic", strlen(boundary)))
         return BOUNDARY_PERIODIC;
     if(0 == strncmp(boundary, "hsymmetric", strlen(boundary)))
         return BOUNDARY_HSYMMETRIC;
