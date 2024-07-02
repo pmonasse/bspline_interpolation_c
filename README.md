@@ -113,7 +113,7 @@ part you need. The usage is fairly simple (see function `splinter_homography`):
 
 Open html/index.html to browse the documentation.
 
-## List of files in the directory src##
+## List of files in the directory src ##
 
 * bspline_main.c         : Main program for input/output
 * homography_tools.[hc]  : Functions related to homographies
