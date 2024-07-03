@@ -30,5 +30,9 @@
 void splinter_homography(double *out, const double *in, int w, int h, int c,
                          int order, BoundaryExt boundary, double eps,
                          int larger, const double homo[9]);
+void splinter_homography_geom(double *out, double x0, double y0, int wo, int ho,
+                              const double *in, int w, int h, int c,
+                              int order, BoundaryExt boundary, double eps,
+                              int larger, const double homo[9]);
 
 #endif

@@ -27,10 +27,23 @@
 #include <stdlib.h>
 
 /// Apply homography with spline interpolation to an image.
-void splinter_homography(double *out, const double *in,
+void splinter_homography(double *out,
+                         const double *in,
                          int w, int h, int c,
                          int n, BoundaryExt boundary, double eps,
                          int larger, const double H[9]) {
+    splinter_homography_geom(out, 0, 0, w, h, in, w, h, c,
+                             n, boundary, eps, larger, H);
+}
+
+/// Apply homography with spline interpolation to an image, specifying the
+/// output area.
+void splinter_homography_geom(double *out,
+                              double x0, double y0, int wout, int hout,
+                              const double *in,
+                              int w, int h, int c,
+                              int n, BoundaryExt boundary, double eps,
+                              int larger, const double H[9]) {
     // invert homography
     double iH[9];
     invert_homography(iH, H);
@@ -40,14 +53,14 @@ void splinter_homography(double *out, const double *in,
     // computation of the pixel locations
     double p[2], q[2];
     double* outp = malloc(c*sizeof*outp);
-    for(int j = 0; j < h; j++) {
-        p[1] = j;
-        for(int i = 0; i < w; i++) {
-            p[0] = i;
+    for(int j = 0; j < hout; j++) {
+        p[1] = j+y0;
+        for(int i = 0; i < wout; i++) {
+            p[0] = i+x0;
             apply_homography(q, p, iH);
             splinter(outp, q[0], q[1], plan);
             for(int k=0; k<c; k++)
-                out[k*w*h] = outp[k];
+                out[k*wout*hout] = outp[k];
             ++out;
         }
     }

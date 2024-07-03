@@ -17,6 +17,8 @@ Ecole des Ponts ParisTech
 * Version 1.0, released on 06/27/2018
 * Version 1.1, released on 12/15/2023
   - Modifying the license: from GPL-2.0+ to LGPL-3.0-or-later
+* Version 1.2, released on 07/03/2024
+  - Optional argument for geometry of output image (wxh or wxh+x+y)
 
 ## License ##
 This program is free software: you can redistribute it and/or modify it
@@ -32,7 +34,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Pulic License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-Copyright (C) 2017-2023, Thibaud Briand <thibaud.briand@enpc.fr>,
+Copyright (C) 2017-2024, Thibaud Briand <thibaud.briand@enpc.fr>,
                          Pascal Monasse <monasse@imagine.enpc.fr>
 
 All rights reserved.
@@ -61,7 +63,7 @@ produces an homographic transformation of the image using B-spline
 interpolation. The meaning of the parameters is thoroughly discussed on the
 accompanying IPOL article.
 
-      Usage: ./bspline "homography" in out [order boundary eps larger]
+      Usage: ./bspline "homography" in out [order boundary eps larger geometry]
     Homographic transformation of an image using B-spline interpolation
 
     homography: 9 matrix coefficients ("h11 h12 h13; h21 h22 h23; h31 h32 h33")
@@ -72,6 +74,7 @@ accompanying IPOL article.
       boundary : extension (constant, periodic, hsymmetric*, wsymmetric)
       eps      : relative precision (float, default 6) (eps>=1 means 10^-eps)
       larger   : compute on exact (0*) or larger domain (1)
+      geometry : output image geometry, format wxh or wxh+x+y
         *default parameters
 
 Execution examples:

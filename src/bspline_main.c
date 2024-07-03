@@ -60,7 +60,7 @@
 static void usage(const char* argv0) {
     //positions               0       1
     fprintf(stderr, "  Usage: %s \"homography\""
-            " in out [order boundary eps larger]\n", argv0);
+            " in out [order boundary eps larger geometry]\n", argv0);
     //        2  3    4     5        6   7
     fprintf(stderr, "Homographic transformation of an image");
     fprintf(stderr, " using B-spline interpolation\n\n");
@@ -79,6 +79,7 @@ static void usage(const char* argv0) {
     fprintf(stderr, "eps      : relative precision (float, default 6)");
     fprintf(stderr, " (eps>=1 means 10^-eps)\n");
     fprintf(stderr, "larger   : compute on exact (0*) or larger domain (1)\n");
+    fprintf(stderr, "geometry : area of output, wxh or wxh+x0+y0\n");
     fprintf(stderr, "  *default parameters\n");
 }
 
@@ -91,6 +92,18 @@ static int parse_doubles(double *t, int nmax, const char *s) {
         s += w;
     }
     return i;
+}
+
+/// Decode string of form "wxh" or "wxh+x+y" with x,y,w,h integers, w and h
+/// positive. For negative x or y, just replace + by -. Return 0 on success.
+static int parse_geometry(double *x, double *y, int *w, int *h, const char *g) {
+    *x = *y = 0;
+    int n = sscanf(g, "%dx%d%lg%lg", w, h, x, y);
+    if(n != 2 && n != 4)
+        return 1;
+    if(*w <= 0 || *h <= 0)
+        return 1;
+    return 0;
 }
 
 /// Read boundary extension
@@ -127,7 +140,7 @@ static double fix_precision(double eps) {
 
 /// Apply homogaphy to an image using spline interpolation
 int main(int argc, char *argv[]) {
-    if(! (4<=argc && argc<=8)) {
+    if(! (4<=argc && argc<=9)) {
         usage(argv[0]);
         return EXIT_FAILURE;
     }
@@ -140,6 +153,7 @@ int main(int argc, char *argv[]) {
     char *boundary = (argc>5? argv[5]: "hsym");
     double eps = (argc>6? atof(argv[6]): 6);
     int larger = (argc>7? atoi(argv[7]): 0);
+    char *geom = (argc>8? argv[8]: 0);
 
     if(order > MAX_ORDER) {
         fprintf(stderr,"The maximal order authorized is %i\n", MAX_ORDER);
@@ -161,14 +175,25 @@ int main(int argc, char *argv[]) {
     int w, h, c;
     double *in = iio_read_image_double_split(filename_in, &w, &h, &c);
 
-    int Npixels = w*h*c;
+    double x0=0, y0=0;
+    int wout=w, hout=h;
+    if(geom && parse_geometry(&x0, &y0, &wout, &hout, geom)) {
+        fprintf(stderr,"Wrong format for geometry\n");
+        return EXIT_FAILURE;
+    }
+    
+    int Npixels = wout*hout*c;
     double *out = malloc(Npixels*sizeof*out);
 
     unsigned long t0 = xmtime();
-    splinter_homography(out, in, w,h,c, order, ext, eps, larger, homo);
+    if(geom)
+        splinter_homography_geom(out, x0, y0, wout, hout,
+                                 in, w,h,c, order, ext, eps, larger, homo);
+    else
+        splinter_homography(out, in, w,h,c, order, ext, eps, larger, homo);
     fprintf(stderr, "interpolation: %.3f s\n", (xmtime()-t0)/1000.0f);
 
-    iio_write_image_double_split(filename_out, out, w, h, c);
+    iio_write_image_double_split(filename_out, out, wout, hout, c);
 
     free(in);
     free(out);
