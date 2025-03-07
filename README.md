@@ -128,5 +128,5 @@ Additional files:
 
 * iio/                   : C library for opening images in any format
 * xmtime.h               : Clock with millisecond precision
-* compute_bspline.c      : Ccompute the B-spline interpolator parameters
+* compute_bspline.c      : Compute the B-spline interpolator parameters
 * hom4p.c                : Compute homography from 4 points (for on-line demo)
