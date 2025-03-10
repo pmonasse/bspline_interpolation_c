@@ -5,7 +5,7 @@
  * @author Thibaud Briand <thibaud.briand@enpc.fr>
  *         Pascal Monasse <monasse@imagine.enpc.fr>
  *
- * Copyright (c) 2017-2023, Thibaud Briand, Pascal Monasse
+ * Copyright (c) 2017-2025, Thibaud Briand, Pascal Monasse
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify it
@@ -25,8 +25,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "iio.h"
 #include "splinter_transform.h"
+#include "homography_tools.h"
 #include "xmtime.h"
 
 /// \mainpage Splinter: spline interpolation of images.
@@ -61,25 +63,23 @@ static void usage(const char* argv0) {
     //positions               0       1
     fprintf(stderr, "  Usage: %s \"homography\""
             " in out [order boundary eps larger geometry]\n", argv0);
-    //        2  3    4     5        6   7
+    //        2  3    4     5        6   7      8
     fprintf(stderr, "Homographic transformation of an image");
     fprintf(stderr, " using B-spline interpolation\n\n");
-    fprintf(stderr, "homography: 9 matrix coefficients");
-    fprintf(stderr, " (\"h11 h12 h13; h21 h22 h23; h31 h32 h33\")\n");
+    fprintf(stderr, "homography: 9 matrix coefficients"
+                    " (\"h11 h12 h13; h21 h22 h23; h31 h32 h33\")\n");
     fprintf(stderr, "in       : filename of the input image\n");
     fprintf(stderr, "out      : filename of the output image\n");
     fprintf(stderr, "  Options:\n");
-    fprintf(stderr, "order    : order of interpolation (integer between ");
-    fprintf(stderr, "0 and %i, default %i)\n", MAX_ORDER, MAX_TABULATED_ORDER);
-    fprintf(stderr, "boundary : boundary extension");
-    fprintf(stderr, " (constant");
-    fprintf(stderr, ", periodic");
-    fprintf(stderr, ", hsymmetric*");
-    fprintf(stderr, ", wsymmetric)\n");
-    fprintf(stderr, "eps      : relative precision (float, default 6)");
-    fprintf(stderr, " (eps>=1 means 10^-eps)\n");
+    fprintf(stderr, "order    : order of interpolation (integer between "
+                    "0 and %i, default %i)\n", MAX_ORDER, MAX_TABULATED_ORDER);
+    fprintf(stderr, "boundary : boundary extension"
+                    " (constant, periodic, hsymmetric*, wsymmetric)\n");
+    fprintf(stderr, "eps      : relative precision (float, default 6)"
+                    " (eps>=1 means 10^-eps)\n");
     fprintf(stderr, "larger   : compute on exact (0*) or larger domain (1)\n");
-    fprintf(stderr, "geometry : area of output, wxh or wxh+x0+y0\n");
+    fprintf(stderr, "geometry : area of output, wxh or wxh+x0+y0 or auto "
+                    "or center\n");
     fprintf(stderr, "  *default parameters\n");
 }
 
@@ -96,7 +96,31 @@ static int parse_doubles(double *t, int nmax, const char *s) {
 
 /// Decode string of form "wxh" or "wxh+x+y" with x,y,w,h integers, w and h
 /// positive. For negative x or y, just replace + by -. Return 0 on success.
-static int parse_geometry(double *x, double *y, int *w, int *h, const char *g) {
+static int parse_geometry(double *x, double *y, int *w, int *h,
+                          const double H[9], const char *g) {
+    if(0 == strncmp(g, "center", strlen(g))) { // Keep center of image fixed
+        double c[2] = {*x+*w/2., *y+*h/2.}, hc[2];
+        apply_homography(hc, c, H);
+        *x = hc[0]-*w/2.; *y = hc[1]-*h/2.;
+        return 0;
+    }
+    if(0 == strncmp(g, "auto", strlen(g))) { // Bounding box of image
+        double hc[8];
+        for(int i=0; i<4; i++) { // Transform corners
+            double c[2] = {(i&1)**w, ((i&2)>>1)**h};
+            apply_homography(hc+2*i, c, H);
+        }
+        double bb[4] = {hc[0], hc[1], hc[0], hc[1]}; // minx, miny, maxx, maxy
+        for(int s=0; s<=1; s++)
+            for(int i=1; i<4; i++)
+                if(hc[2*i+s]<bb[s])
+                    bb[s] = hc[2*i+s];
+                else if(hc[2*i+s]>bb[s+2])
+                    bb[s+2] = hc[2*i+s];
+        *x = bb[0]; *y = bb[1];
+        *w = (int)ceil(bb[2]-bb[0]); *h = (int)ceil(bb[3]-bb[1]);
+        return 0;
+    }
     *x = *y = 0;
     int n = sscanf(g, "%dx%d%lg%lg", w, h, x, y);
     if(n != 2 && n != 4)
@@ -177,7 +201,7 @@ int main(int argc, char *argv[]) {
 
     double x0=0, y0=0;
     int wout=w, hout=h;
-    if(geom && parse_geometry(&x0, &y0, &wout, &hout, geom)) {
+    if(geom && parse_geometry(&x0, &y0, &wout, &hout, homo, geom)) {
         fprintf(stderr,"Wrong format for geometry\n");
         return EXIT_FAILURE;
     }

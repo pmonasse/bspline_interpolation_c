@@ -19,6 +19,8 @@ Ecole des Ponts ParisTech
   - Modifying the license: from GPL-2.0+ to LGPL-3.0-or-later
 * Version 1.2, released on 07/03/2024
   - Optional argument for geometry of output image (wxh or wxh+x+y)
+* Version 1.3, released on 03/10/2025
+  - Additional geometry options: auto and center
 
 ## License ##
 This program is free software: you can redistribute it and/or modify it
@@ -34,7 +36,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Pulic License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-Copyright (C) 2017-2024, Thibaud Briand <thibaud.briand@enpc.fr>,
+Copyright (C) 2017-2025, Thibaud Briand <thibaud.briand@enpc.fr>,
                          Pascal Monasse <monasse@imagine.enpc.fr>
 
 All rights reserved.
@@ -74,8 +76,15 @@ accompanying IPOL article.
       boundary : extension (constant, periodic, hsymmetric*, wsymmetric)
       eps      : relative precision (float, default 6) (eps>=1 means 10^-eps)
       larger   : compute on exact (0*) or larger domain (1)
-      geometry : output image geometry, format wxh or wxh+x+y
+      geometry : output image geometry, format wxh or wxh+x+y or auto or center
         *default parameters
+
+Geometry:
+
+- wxh (w,h integers) yields region of top left (0,0) and w pixels in x, h in y.
+- wxh+x+y same with top left (x,y), which can be negative, e.g., 50x100-1.3+5.2.
+- 'auto' gets the bounding box of transformed image
+- 'center' keeps the image center fixed and same size as original image
 
 Execution examples:
 
