@@ -26,9 +26,9 @@
 // editable configuration
 //
 #define IIO_ABORT_ON_ERROR
-#define I_CAN_HAS_LIBPNG
-#define I_CAN_HAS_LIBJPEG
-#define I_CAN_HAS_LIBTIFF
+//#define I_CAN_HAS_LIBPNG
+//#define I_CAN_HAS_LIBJPEG
+//#define I_CAN_HAS_LIBTIFF
 //#define I_CAN_HAS_LIBEXR
 #define I_CAN_HAS_WGET
 #define I_CAN_HAS_WHATEVER
@@ -65,7 +65,7 @@
 //
 //
 #define I_CAN_POSIX
-#define I_CAN_LINUX
+//#define I_CAN_LINUX
 
 //
 // enum-like, only used internally
@@ -218,7 +218,7 @@ jmp_buf global_jump_buffer;
 #include <math.h> // for floorf
 #include <stdlib.h>
 
-#ifdef I_CAN_LINUX
+#ifdef I_CAN_HAS_LINUX
 #  include <unistd.h>
 static const char *emptystring = "";
 static const char *myname(void)
@@ -241,7 +241,7 @@ static const char *myname(void)
 }
 #else
 static const char *myname(void) { return ""; }
-#endif//I_CAN_LINUX
+#endif//I_CAN_HAS_LINUX
 
 static void fail(const char *fmt, ...) __attribute__((noreturn,format(printf,1,2)));
 static void fail(const char *fmt, ...)
